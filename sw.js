@@ -1,7 +1,7 @@
 // sw.js — BF6 Meta service worker
 // Bump CACHE_VERSION when shipping breaking changes to force clients to refresh.
 
-const CACHE_VERSION = 'bf6meta-v5';
+const CACHE_VERSION = 'bf6meta-v6';
 const SHELL = [
   './',
   './index.html',
