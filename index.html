@@ -1,0 +1,1598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+<meta name="theme-color" content="#1C2025" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="BF6 Meta" />
+<title>BF6 Meta</title>
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="favicon.png" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  /* ============================================================
+     RESET + BASE
+     ============================================================ */
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body, #root { height: 100%; margin: 0; }
+  body {
+    background: #1C2025;
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior-y: none;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  button { background: none; border: 0; color: inherit; padding: 0; font: inherit; cursor: pointer; }
+  input { font: inherit; }
+  * { -webkit-tap-highlight-color: transparent; }
+  .nosel { user-select: none; -webkit-user-select: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* ============================================================
+     COLORS
+     ============================================================ */
+  :root {
+    --bg-dark:    #1C2025;
+    --bg-panel:   #2A3038;
+    --bg-raised:  #353C46;
+    --bg-card:    #23282E;
+    --accent:     #FF6B35;
+    --tier-S:     #D32F2F;
+    --tier-A:     #F57C00;
+    --tier-B:     #FBC02D;
+    --tier-C:     #757575;
+    --text:       #fff;
+    --text-mut:   rgba(255,255,255,0.45);
+    --text-sec:   rgba(255,255,255,0.72);
+    --border:     rgba(255,255,255,0.08);
+    --border-strong: rgba(255,255,255,0.16);
+  }
+
+  /* ============================================================
+     LAYOUT PRIMITIVES
+     ============================================================ */
+  .col          { display: flex; flex-direction: column; }
+  .row          { display: flex; flex-direction: row; align-items: center; }
+  .row-top      { display: flex; flex-direction: row; align-items: flex-start; }
+  .h-full       { height: 100%; }
+  .min-h-0      { min-height: 0; }
+  .flex-1       { flex: 1 1 0%; }
+  .shrink-0     { flex-shrink: 0; }
+  .gap-1        { gap: 4px; }
+  .gap-1-5      { gap: 6px; }
+  .gap-2        { gap: 8px; }
+  .gap-2-5      { gap: 10px; }
+  .gap-3        { gap: 12px; }
+  .gap-3-5      { gap: 14px; }
+  .gap-4        { gap: 16px; }
+  .items-start  { align-items: flex-start; }
+  .items-center { align-items: center; }
+  .items-end    { align-items: flex-end; }
+  .justify-center { justify-content: center; }
+  .justify-between { justify-content: space-between; }
+  .text-left    { text-align: left; }
+  .text-center  { text-align: center; }
+  .relative     { position: relative; }
+  .fixed        { position: fixed; }
+  .sticky       { position: sticky; }
+  .top-0        { top: 0; }
+  .left-0       { left: 0; }
+  .right-0      { right: 0; }
+  .bottom-0     { bottom: 0; }
+  .z-30         { z-index: 30; }
+  .z-40         { z-index: 40; }
+  .z-50         { z-index: 50; }
+  .inset-0      { top: 0; right: 0; bottom: 0; left: 0; }
+  .w-full       { width: 100%; }
+  .min-w-0      { min-width: 0; }
+  .truncate     { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .overflow-y-auto { overflow-y: auto; }
+  .overflow-x-auto { overflow-x: auto; }
+  .grid-2       { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .grid-3       { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+
+  /* Padding/margin: explicit */
+  .px-2  { padding-left: 8px;  padding-right: 8px; }
+  .px-3  { padding-left: 12px; padding-right: 12px; }
+  .px-4  { padding-left: 16px; padding-right: 16px; }
+  .py-1  { padding-top: 4px;   padding-bottom: 4px; }
+  .py-1-5{ padding-top: 6px;   padding-bottom: 6px; }
+  .py-2  { padding-top: 8px;   padding-bottom: 8px; }
+  .py-3  { padding-top: 12px;  padding-bottom: 12px; }
+  .py-4  { padding-top: 16px;  padding-bottom: 16px; }
+  .pt-3  { padding-top: 12px; }
+  .pb-2  { padding-bottom: 8px; }
+  .pb-6  { padding-bottom: 24px; }
+  .pb-10 { padding-bottom: 40px; }
+  .pb-28 { padding-bottom: 112px; }
+  .p-2-5 { padding: 10px; }
+  .p-3   { padding: 12px; }
+  .p-4   { padding: 16px; }
+  .p-8   { padding: 32px; }
+  .mt-1  { margin-top: 4px; }
+  .mt-1-5{ margin-top: 6px; }
+  .mt-2  { margin-top: 8px; }
+  .mt-3  { margin-top: 12px; }
+  .mt-4  { margin-top: 16px; }
+  .mt-6  { margin-top: 24px; }
+  .mb-1  { margin-bottom: 4px; }
+  .mb-2  { margin-bottom: 8px; }
+  .mb-3  { margin-bottom: 12px; }
+
+  /* Safe area */
+  .safe-top    { padding-top: env(safe-area-inset-top); }
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+
+  /* ============================================================
+     COMPONENTS
+     ============================================================ */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+  .card-sm { border-radius: 8px; }
+
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background: rgba(28,32,37,0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .topbar-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    height: 48px;
+  }
+  .topbar-divider { height: 1px; background: var(--border); }
+
+  .tabbar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 30;
+    background: rgba(28,32,37,0.96);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid var(--border);
+  }
+  .tabbar-row { display: flex; }
+  .tab-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 0 6px;
+    color: var(--text-mut);
+    transition: color 0.15s;
+  }
+  .tab-btn.active { color: var(--accent); }
+  .tab-icon { font-size: 20px; line-height: 1; }
+  .tab-label { font-size: 10px; font-weight: 600; margin-top: 4px; }
+
+  /* Tier badges */
+  .tier-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 900;
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+  .tier-badge.S { background: var(--tier-S); }
+  .tier-badge.A { background: var(--tier-A); }
+  .tier-badge.B { background: var(--tier-B); color: #000; }
+  .tier-badge.C { background: var(--tier-C); }
+
+  /* Section header */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+    margin-bottom: 8px;
+    user-select: none;
+  }
+  .section-header-bar {
+    width: 3px;
+    height: 16px;
+    background: var(--accent);
+  }
+  .section-header-text {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--accent);
+  }
+
+  /* Inputs */
+  input[type=search], input[type=text] {
+    background: var(--bg-card);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    width: 100%;
+    outline: none;
+    font-size: 15px;
+  }
+  input[type=search]:focus, input[type=text]:focus { border-color: var(--accent); }
+  input[type=search]::placeholder, input[type=text]::placeholder { color: var(--text-mut); }
+
+  /* Class chips */
+  .chip {
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    background: var(--bg-panel);
+    color: var(--text-sec);
+    white-space: nowrap;
+    transition: all 0.15s;
+  }
+  .chip.active { background: var(--accent); color: #fff; }
+  .chip-row {
+    display: flex;
+    gap: 8px;
+    padding: 0 16px 8px;
+  }
+
+  /* Weapon row */
+  .weapon-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    width: 100%;
+    text-align: left;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    transition: background 0.1s;
+  }
+  .weapon-row:active { background: rgba(255,255,255,0.05); }
+  .weapon-row-content { flex: 1; min-width: 0; }
+  .weapon-name {
+    font-size: 15px;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .weapon-stats {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 2px;
+  }
+  .stat-chip {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .stat-chip-label {
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--text-mut);
+  }
+  .stat-chip-value {
+    font-size: 12px;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .class-pill {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 999px;
+    background: var(--bg-raised);
+    color: var(--accent);
+  }
+  .chevron { color: rgba(255,255,255,0.3); font-size: 16px; }
+
+  /* Stat tile */
+  .stat-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+  .stat-tile-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    color: var(--text-mut);
+  }
+  .stat-tile-value {
+    font-size: 22px;
+    font-weight: 700;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    color: var(--text);
+    margin-top: 4px;
+  }
+
+  /* Mod row */
+  .mod-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .mod-row-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    color: var(--text-mut);
+    width: 96px;
+    flex-shrink: 0;
+  }
+  .mod-row-value { font-size: 14px; flex: 1; }
+
+  /* Buttons */
+  .btn-primary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    background: var(--accent);
+    color: #fff;
+    transition: opacity 0.1s;
+  }
+  .btn-primary:disabled {
+    background: var(--bg-panel);
+    color: var(--text-mut);
+  }
+  .btn-pill {
+    padding: 8px 16px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .btn-icon { font-size: 22px; }
+  .btn-link { color: var(--accent); font-size: 15px; }
+  .btn-danger {
+    color: var(--tier-S);
+    width: 100%;
+    padding: 12px;
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  /* Compare stat row */
+  .cmp-row {
+    display: flex;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .cmp-cell {
+    flex: 1;
+    padding: 12px 0;
+    text-align: center;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-weight: 700;
+    font-size: 20px;
+    color: var(--text-sec);
+  }
+  .cmp-cell.win {
+    color: var(--accent);
+    background: rgba(255,107,53,0.12);
+  }
+  .cmp-label {
+    width: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--text-mut);
+  }
+
+  /* Slot card (compare picker) */
+  .slot-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: left;
+    width: 100%;
+  }
+  .slot-card-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--accent);
+  }
+  .slot-card:active { background: rgba(255,255,255,0.05); }
+
+  /* Loadout slot row in builder */
+  .lo-slot {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    width: 100%;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    text-align: left;
+  }
+  .lo-slot:active { background: rgba(255,255,255,0.05); }
+  .lo-slot-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--accent);
+    width: 88px;
+    flex-shrink: 0;
+  }
+  .lo-slot-value { flex: 1; font-size: 14px; }
+  .lo-slot-value.empty { color: var(--text-mut); }
+  .lo-slot-sub {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--text-mut);
+  }
+
+  /* Empty states */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 64px 24px;
+  }
+  .empty-icon {
+    font-size: 44px;
+    color: rgba(255,255,255,0.25);
+    margin-bottom: 12px;
+  }
+  .empty-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .empty-text {
+    font-size: 12px;
+    color: var(--text-mut);
+    max-width: 300px;
+  }
+
+  /* Info row (about) */
+  .info-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .info-row.last { border-bottom: 0; }
+  .info-row-label { font-size: 12px; color: var(--text-mut); }
+  .info-row-value {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 13px;
+  }
+
+  /* Compare loadout box */
+  .cmp-mod {
+    padding: 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .cmp-mod-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .cmp-mod-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .cmp-mod-cell { font-size: 12px; }
+  .cmp-mod-cell.right {
+    border-left: 1px solid var(--border);
+    padding-left: 12px;
+  }
+
+  /* Detail screen header card */
+  .detail-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+  .detail-name { font-size: 26px; font-weight: 900; line-height: 1.1; }
+  .detail-class {
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 1.4px; text-transform: uppercase;
+    color: var(--accent); margin-top: 4px;
+  }
+  .detail-pick { font-size: 12px; color: var(--text-sec); margin-top: 4px; }
+  .star-btn { font-size: 24px; color: var(--text-mut); }
+  .star-btn.on { color: var(--accent); }
+
+  /* Notes */
+  .notes-card {
+    padding: 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    font-size: 14px;
+    font-style: italic;
+  }
+
+  /* Search hint banner */
+  .search-banner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    margin: 0 16px 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--text-sec);
+  }
+  .search-banner-icon { color: var(--accent); }
+
+  /* Loadout card */
+  .lo-card {
+    width: 100%;
+    padding: 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: left;
+  }
+  .lo-card:active { background: rgba(255,255,255,0.05); }
+  .lo-card-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .lo-card-slots {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .lo-card-slot {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .lo-card-slot-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    color: var(--accent);
+    width: 80px;
+    flex-shrink: 0;
+  }
+  .lo-card-slot-value {
+    font-size: 14px;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Icon overlays for empty states */
+  .star-icon { color: var(--accent); }
+
+  /* Per-class breakdown (about) */
+  .pct-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .pct-row.last { border-bottom: 0; }
+  .pct-row-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    color: var(--text-sec);
+  }
+  .pct-row-count {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-weight: 500;
+  }
+
+  /* Modal overlay (full screen modals) */
+  .modal-fullscreen {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: var(--bg-dark);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Footer text */
+  .footer-text {
+    font-size: 11px;
+    color: rgba(255,255,255,0.35);
+    text-align: center;
+    margin-top: 24px;
+    padding: 0 16px;
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="env,react">
+const { useState, useEffect, useMemo, useCallback } = React;
+
+// ─────────────────────────────────────────────────────────────────────────
+// CONFIG
+// ─────────────────────────────────────────────────────────────────────────
+const DATA_URL = (typeof window !== 'undefined' && window.BF6_DATA_URL) || './weapons.json';
+const VERSION  = '2.1.0-pwa';
+
+// ─────────────────────────────────────────────────────────────────────────
+// STORAGE
+// ─────────────────────────────────────────────────────────────────────────
+const KEY_FAVS     = 'bf6.favorites.v1';
+const KEY_LOADOUTS = 'bf6.loadouts.v1';
+
+const storage = {
+  getFavs() {
+    try { return new Set(JSON.parse(localStorage.getItem(KEY_FAVS) || '[]')); }
+    catch { return new Set(); }
+  },
+  setFavs(set) { localStorage.setItem(KEY_FAVS, JSON.stringify([...set])); },
+  getLoadouts() {
+    try { return JSON.parse(localStorage.getItem(KEY_LOADOUTS) || '[]'); }
+    catch { return []; }
+  },
+  setLoadouts(arr) { localStorage.setItem(KEY_LOADOUTS, JSON.stringify(arr)); },
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────────────────────────────────
+const tierOrder = (t) => ({ S: 0, A: 1, B: 2, C: 3 }[t] ?? 4);
+const sortByTier = (arr) =>
+  [...arr].sort((a, b) => {
+    const t = tierOrder(a.tier) - tierOrder(b.tier);
+    return t !== 0 ? t : a.name.localeCompare(b.name);
+  });
+const uuid = () =>
+  'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
+  });
+const wcls = (w) => w.weaponClass || w.class;
+
+const STAT_SCALES = {
+  rpm: 1100, damage: 130, magazine: 100, rangeMeters: 130, control: 100, mobility: 100,
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// REUSABLE COMPONENTS
+// ─────────────────────────────────────────────────────────────────────────
+function TierBadge({ tier, size = 32 }) {
+  const fontSize = Math.round(size * 0.55);
+  return (
+    <div className={`tier-badge ${tier}`}
+         style={{ width: size, height: size, fontSize }}>
+      {tier}
+    </div>
+  );
+}
+
+function SectionHeader({ children }) {
+  return (
+    <div className="section-header">
+      <div className="section-header-bar" />
+      <div className="section-header-text">{children}</div>
+    </div>
+  );
+}
+
+function TopBar({ title, right }) {
+  return (
+    <div className="topbar safe-top">
+      <div className="topbar-inner nosel">
+        <div style={{ fontSize: 15, fontWeight: 700, letterSpacing: 0.4 }}>{title}</div>
+        <div>{right}</div>
+      </div>
+      <div className="topbar-divider" />
+    </div>
+  );
+}
+
+function StatChip({ label, value }) {
+  return (
+    <div className="stat-chip">
+      <span className="stat-chip-label">{label}</span>
+      <span className="stat-chip-value">{value}</span>
+    </div>
+  );
+}
+
+function StatTile({ label, value }) {
+  return (
+    <div className="stat-tile">
+      <div className="stat-tile-label">{label}</div>
+      <div className="stat-tile-value">{value}</div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// STAT RADAR
+// ─────────────────────────────────────────────────────────────────────────
+function StatRadar({ weapon }) {
+  const labels = ['RPM', 'DMG', 'MAG', 'RNG', 'CTRL', 'MOB'];
+  const values = [
+    Math.min(weapon.rpm / STAT_SCALES.rpm, 1),
+    Math.min(weapon.damage / STAT_SCALES.damage, 1),
+    Math.min(weapon.magazine / STAT_SCALES.magazine, 1),
+    Math.min(weapon.rangeMeters / STAT_SCALES.rangeMeters, 1),
+    Math.min(weapon.control / STAT_SCALES.control, 1),
+    Math.min(weapon.mobility / STAT_SCALES.mobility, 1),
+  ];
+  const SIZE = 240;
+  const cx = SIZE / 2;
+  const cy = SIZE / 2;
+  const maxR = SIZE / 2 - 28;
+  const N = 6;
+
+  const vertex = (i, r) => {
+    const a = -Math.PI / 2 + (i / N) * 2 * Math.PI;
+    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  };
+  const grids = [0.25, 0.5, 0.75, 1.0].map((f, idx) => {
+    const pts = Array.from({ length: N }, (_, i) => vertex(i, maxR * f));
+    return (
+      <polygon key={idx}
+        points={pts.map((p) => p.join(',')).join(' ')}
+        fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+    );
+  });
+  const spokes = Array.from({ length: N }, (_, i) => {
+    const [x, y] = vertex(i, maxR);
+    return <line key={i} x1={cx} y1={cy} x2={x} y2={y}
+                 stroke="rgba(255,255,255,0.08)" strokeWidth="1" />;
+  });
+  const polyPts = values.map((v, i) => vertex(i, maxR * v));
+  const polyStr = polyPts.map((p) => p.join(',')).join(' ');
+  const dots = polyPts.map(([x, y], i) => (
+    <circle key={i} cx={x} cy={y} r="3.5" fill="#FF6B35" />
+  ));
+  const labelEls = labels.map((label, i) => {
+    const [x, y] = vertex(i, maxR + 14);
+    return (
+      <text key={i} x={x} y={y}
+            fill="rgba(255,255,255,0.72)" fontSize="10" fontWeight="bold"
+            textAnchor="middle" dominantBaseline="middle">{label}</text>
+    );
+  });
+
+  return (
+    <div className="card" style={{ display: 'flex', justifyContent: 'center', padding: '8px 0' }}>
+      <svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`}>
+        {grids}
+        {spokes}
+        <polygon points={polyStr} fill="rgba(255,107,53,0.22)" stroke="#FF6B35" strokeWidth="2" />
+        {dots}
+        {labelEls}
+      </svg>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// WEAPON ROW
+// ─────────────────────────────────────────────────────────────────────────
+function WeaponRow({ weapon, onTap, isFav, showClass = false }) {
+  return (
+    <button onClick={onTap} className="weapon-row">
+      <TierBadge tier={weapon.tier} size={40} />
+      <div className="weapon-row-content">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div className="weapon-name">{weapon.name}</div>
+          {isFav && <span style={{ color: '#FF6B35', fontSize: 12 }}>★</span>}
+        </div>
+        <div className="weapon-stats">
+          {showClass && <span className="class-pill">{wcls(weapon)}</span>}
+          <StatChip label="RPM" value={weapon.rpm} />
+          <StatChip label="DMG" value={weapon.damage} />
+          <StatChip label="RNG" value={`${weapon.rangeMeters}m`} />
+        </div>
+      </div>
+      <span className="chevron">›</span>
+    </button>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// BROWSE
+// ─────────────────────────────────────────────────────────────────────────
+function BrowseScreen({ payload, favs, onOpenWeapon }) {
+  const classes = payload.classes;
+  const [selectedClass, setSelectedClass] = useState(classes[0] || 'Assault');
+  const [search, setSearch] = useState('');
+
+  const list = useMemo(() => {
+    let base;
+    if (search) {
+      const q = search.toLowerCase();
+      base = payload.weapons.filter((w) =>
+        w.name.toLowerCase().includes(q) ||
+        wcls(w).toLowerCase().includes(q) ||
+        (w.notes || '').toLowerCase().includes(q));
+    } else {
+      base = payload.weapons.filter((w) => wcls(w) === selectedClass);
+    }
+    return sortByTier(base);
+  }, [payload, search, selectedClass]);
+
+  return (
+    <div className="col h-full">
+      <TopBar title="BF6 META" />
+      <div className="px-4 pt-3 pb-2">
+        <input type="search" placeholder="Search all weapons"
+               value={search} onChange={(e) => setSearch(e.target.value)} />
+      </div>
+      {!search && (
+        <div className="overflow-x-auto no-scrollbar">
+          <div className="chip-row">
+            {classes.map((c) => (
+              <button key={c} onClick={() => setSelectedClass(c)}
+                      className={`chip ${selectedClass === c ? 'active' : ''}`}>
+                {c}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      {search && (
+        <div className="search-banner">
+          <span className="search-banner-icon">🔍</span>
+          <span>{list.length} result{list.length === 1 ? '' : 's'} across all classes</span>
+        </div>
+      )}
+      <div className="flex-1 overflow-y-auto px-4 pb-28">
+        <div className="col gap-2-5">
+          {list.map((w) => (
+            <WeaponRow key={w.id} weapon={w} onTap={() => onOpenWeapon(w)}
+                       isFav={favs.has(w.id)} showClass={!!search} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// WEAPON DETAIL
+// ─────────────────────────────────────────────────────────────────────────
+function WeaponDetail({ weapon, isFav, onToggleFav, onClose }) {
+  const stats = [
+    { label: 'RPM',  value: weapon.rpm },
+    { label: 'DMG',  value: weapon.damage },
+    { label: 'MAG',  value: weapon.magazine },
+    { label: 'RNG',  value: weapon.rangeMeters },
+    { label: 'CTRL', value: weapon.control },
+    { label: 'MOB',  value: weapon.mobility },
+  ];
+  const mods = [
+    ['Muzzle', weapon.mods.muzzle],
+    ['Barrel', weapon.mods.barrel],
+    ['Underbarrel', weapon.mods.underbarrel],
+    ['Magazine', weapon.mods.magazine],
+    ['Ammo', weapon.mods.ammo],
+    ['Optic', weapon.mods.optic],
+    ['Stock', weapon.mods.stock],
+  ];
+  const pickLabel = weapon.tier === 'S' ? 'META PICK'
+                  : weapon.tier === 'A' ? 'STRONG PICK'
+                  : weapon.tier === 'B' ? 'SITUATIONAL' : 'NICHE';
+
+  return (
+    <div className="modal-fullscreen">
+      <TopBar title={weapon.name}
+        right={<button onClick={onClose} className="btn-link">Close</button>} />
+      <div className="flex-1 overflow-y-auto px-4 pt-3 pb-10">
+        <div className="detail-header">
+          <TierBadge tier={weapon.tier} size={56} />
+          <div className="flex-1 min-w-0">
+            <div className="detail-name">{weapon.name}</div>
+            <div className="detail-class">{wcls(weapon)}</div>
+            <div className="detail-pick">{pickLabel}</div>
+          </div>
+          <button onClick={onToggleFav} className={`star-btn ${isFav ? 'on' : ''}`}>
+            {isFav ? '★' : '☆'}
+          </button>
+        </div>
+
+        <SectionHeader>Performance Stats</SectionHeader>
+        <div className="grid-3">
+          {stats.map((s) => <StatTile key={s.label} label={s.label} value={s.value} />)}
+        </div>
+
+        <SectionHeader>Stat Profile</SectionHeader>
+        <StatRadar weapon={weapon} />
+
+        <SectionHeader>Recommended Loadout</SectionHeader>
+        <div className="col gap-2">
+          {mods.map(([label, value]) => (
+            <div key={label} className="mod-row">
+              <div className="mod-row-label">{label.toUpperCase()}</div>
+              <div className="mod-row-value">{value}</div>
+            </div>
+          ))}
+        </div>
+
+        <SectionHeader>Playstyle Notes</SectionHeader>
+        <div className="notes-card">{weapon.notes}</div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// COMPARE
+// ─────────────────────────────────────────────────────────────────────────
+function CompareScreen({ payload }) {
+  const [leftId, setLeftId]   = useState(null);
+  const [rightId, setRightId] = useState(null);
+  const [pickerSide, setPickerSide] = useState(null);
+
+  const left  = payload.weapons.find((w) => w.id === leftId);
+  const right = payload.weapons.find((w) => w.id === rightId);
+
+  const statRows = left && right ? [
+    ['RPM',  left.rpm,         right.rpm],
+    ['DMG',  left.damage,      right.damage],
+    ['MAG',  left.magazine,    right.magazine],
+    ['RNG',  left.rangeMeters, right.rangeMeters],
+    ['CTRL', left.control,     right.control],
+    ['MOB',  left.mobility,    right.mobility],
+  ] : [];
+  const modRows = left && right ? [
+    ['Muzzle', left.mods.muzzle, right.mods.muzzle],
+    ['Barrel', left.mods.barrel, right.mods.barrel],
+    ['Underbarrel', left.mods.underbarrel, right.mods.underbarrel],
+    ['Magazine', left.mods.magazine, right.mods.magazine],
+    ['Ammo', left.mods.ammo, right.mods.ammo],
+    ['Optic', left.mods.optic, right.mods.optic],
+    ['Stock', left.mods.stock, right.mods.stock],
+  ] : [];
+
+  return (
+    <div className="col h-full">
+      <TopBar title="COMPARE" />
+      <div className="flex-1 overflow-y-auto px-4 pt-3 pb-28">
+        <div className="grid-2">
+          <SlotCard label="WEAPON A" weapon={left}  onTap={() => setPickerSide('left')} />
+          <SlotCard label="WEAPON B" weapon={right} onTap={() => setPickerSide('right')} />
+        </div>
+
+        {left && right ? (
+          <>
+            <SectionHeader>Stats</SectionHeader>
+            <div className="col gap-2">
+              {statRows.map(([lbl, l, r]) => (
+                <div key={lbl} className="cmp-row">
+                  <div className={`cmp-cell ${l > r ? 'win' : ''}`}>{l}</div>
+                  <div className="cmp-label">{lbl}</div>
+                  <div className={`cmp-cell ${r > l ? 'win' : ''}`}>{r}</div>
+                </div>
+              ))}
+            </div>
+
+            <SectionHeader>Loadouts</SectionHeader>
+            <div className="col gap-2">
+              {modRows.map(([lbl, l, r]) => (
+                <div key={lbl} className="cmp-mod">
+                  <div className="cmp-mod-label">{lbl.toUpperCase()}</div>
+                  <div className="cmp-mod-grid">
+                    <div className="cmp-mod-cell">{l}</div>
+                    <div className="cmp-mod-cell right">{r}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div className="card text-center" style={{ marginTop: 24, padding: 32 }}>
+            <div style={{ fontSize: 32, marginBottom: 8, color: '#FF6B35' }}>↔</div>
+            <div style={{ fontSize: 15, fontWeight: 600 }}>Select two weapons to compare</div>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>
+              Stats highlight the stronger value in orange.
+            </div>
+          </div>
+        )}
+      </div>
+      {pickerSide && (
+        <WeaponPicker payload={payload}
+          onPick={(w) => { pickerSide === 'left' ? setLeftId(w.id) : setRightId(w.id); setPickerSide(null); }}
+          onClose={() => setPickerSide(null)} />
+      )}
+    </div>
+  );
+}
+
+function SlotCard({ label, weapon, onTap }) {
+  return (
+    <button onClick={onTap} className="slot-card">
+      <div className="slot-card-label">{label}</div>
+      {weapon ? (
+        <>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <TierBadge tier={weapon.tier} size={26} />
+            <div style={{ fontWeight: 600 }}>{weapon.name}</div>
+          </div>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1, color: 'rgba(255,255,255,0.45)' }}>
+            {wcls(weapon).toUpperCase()}
+          </div>
+        </>
+      ) : (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'rgba(255,255,255,0.45)', marginTop: 4 }}>
+          <span>+</span>
+          <span style={{ fontSize: 14 }}>Tap to select</span>
+        </div>
+      )}
+    </button>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// WEAPON PICKER (modal)
+// ─────────────────────────────────────────────────────────────────────────
+function WeaponPicker({ payload, onPick, onClose, restrictToClasses = null, excludeClasses = [] }) {
+  const [search, setSearch] = useState('');
+  const [classFilter, setClassFilter] = useState('All');
+  const available = restrictToClasses || payload.classes.filter((c) => !excludeClasses.includes(c));
+  const classOptions = ['All', ...available];
+
+  const list = useMemo(() => {
+    let base = payload.weapons.filter((w) => available.includes(wcls(w)));
+    if (classFilter !== 'All') base = base.filter((w) => wcls(w) === classFilter);
+    if (search) {
+      const q = search.toLowerCase();
+      base = base.filter((w) => w.name.toLowerCase().includes(q));
+    }
+    return sortByTier(base);
+  }, [payload, classFilter, search]);
+
+  return (
+    <div className="modal-fullscreen">
+      <TopBar title="Pick a weapon"
+        right={<button onClick={onClose} className="btn-link">Cancel</button>} />
+      <div className="px-4 pt-3 pb-2">
+        <input type="search" placeholder="Search weapons"
+               value={search} onChange={(e) => setSearch(e.target.value)} />
+      </div>
+      <div className="overflow-x-auto no-scrollbar">
+        <div className="chip-row">
+          {classOptions.map((c) => (
+            <button key={c} onClick={() => setClassFilter(c)}
+                    className={`chip ${classFilter === c ? 'active' : ''}`}>
+              {c}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="flex-1 overflow-y-auto px-4 pb-6">
+        <div className="col gap-2">
+          {list.map((w) => (
+            <button key={w.id} onClick={() => onPick(w)}
+                    className="weapon-row" style={{ borderRadius: 8 }}>
+              <TierBadge tier={w.tier} size={30} />
+              <div className="weapon-row-content">
+                <div className="weapon-name">{w.name}</div>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1, color: 'rgba(255,255,255,0.45)', marginTop: 2 }}>
+                  {wcls(w).toUpperCase()}
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// LOADOUTS
+// ─────────────────────────────────────────────────────────────────────────
+function LoadoutsScreen({ payload, loadouts, setLoadouts }) {
+  const [editing, setEditing] = useState(null);
+  const sorted = [...loadouts].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+  const onSave = (loadout) => {
+    if (loadout.id && loadouts.some((l) => l.id === loadout.id)) {
+      setLoadouts(loadouts.map((l) => l.id === loadout.id ? loadout : l));
+    } else {
+      setLoadouts([...loadouts, { ...loadout, id: loadout.id || uuid(), createdAt: Date.now() }]);
+    }
+    setEditing(null);
+  };
+  const onDelete = (id) => { setLoadouts(loadouts.filter((l) => l.id !== id)); setEditing(null); };
+
+  return (
+    <div className="col h-full">
+      <TopBar title="LOADOUTS"
+        right={<button onClick={() => setEditing('new')} className="btn-icon" style={{ color: '#FF6B35' }}>+</button>} />
+      <div className="flex-1 overflow-y-auto px-4 pt-3 pb-28">
+        {sorted.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-icon">▤</div>
+            <div className="empty-title">No loadouts yet</div>
+            <div className="empty-text">Tap + to build a kit. Saved loadouts stay on this device.</div>
+            <button onClick={() => setEditing('new')} className="btn-pill" style={{ marginTop: 16 }}>
+              + Build a Loadout
+            </button>
+          </div>
+        ) : (
+          <div className="col gap-2-5">
+            {sorted.map((l) => (
+              <LoadoutCard key={l.id} loadout={l} payload={payload} onTap={() => setEditing(l)} />
+            ))}
+          </div>
+        )}
+      </div>
+      {editing && (
+        <LoadoutBuilder payload={payload}
+          existing={editing === 'new' ? null : editing}
+          onSave={onSave} onDelete={onDelete} onClose={() => setEditing(null)} />
+      )}
+    </div>
+  );
+}
+
+function LoadoutCard({ loadout, payload, onTap }) {
+  const findW = (id) => payload.weapons.find((w) => w.id === id);
+  const findG = (id) => (payload.gadgets || []).find((g) => g.id === id);
+  const primary   = findW(loadout.primaryId);
+  const secondary = findW(loadout.secondaryId);
+  const g1 = findG(loadout.gadget1Id);
+  const g2 = findG(loadout.gadget2Id);
+
+  const Slot = ({ label, value, sub, tier }) => (
+    <div className="lo-card-slot">
+      <div className="lo-card-slot-label">{label}</div>
+      <div className="lo-card-slot-value">{value || '—'}</div>
+      {sub && <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: 0.8, color: 'rgba(255,255,255,0.45)' }}>{sub.toUpperCase()}</div>}
+      {tier && <TierBadge tier={tier} size={20} />}
+    </div>
+  );
+
+  return (
+    <button onClick={onTap} className="lo-card">
+      <div className="lo-card-title">
+        <span>{loadout.name}</span>
+        <span className="chevron">›</span>
+      </div>
+      <div className="lo-card-slots">
+        <Slot label="PRIMARY"   value={primary?.name}   sub={primary && wcls(primary)}     tier={primary?.tier} />
+        <Slot label="SECONDARY" value={secondary?.name} sub={secondary && wcls(secondary)} tier={secondary?.tier} />
+        <Slot label="GADGET 1"  value={g1?.name}        sub={g1?.role}                     tier={g1?.tier} />
+        <Slot label="GADGET 2"  value={g2?.name}        sub={g2?.role}                     tier={g2?.tier} />
+      </div>
+    </button>
+  );
+}
+
+function LoadoutBuilder({ payload, existing, onSave, onDelete, onClose }) {
+  const [name, setName] = useState(existing?.name || '');
+  const [primaryId,  setPrimaryId]   = useState(existing?.primaryId  || null);
+  const [secondaryId, setSecondaryId] = useState(existing?.secondaryId || null);
+  const [g1Id, setG1Id] = useState(existing?.gadget1Id || null);
+  const [g2Id, setG2Id] = useState(existing?.gadget2Id || null);
+  const [picker, setPicker] = useState(null);
+
+  const findW = (id) => payload.weapons.find((w) => w.id === id);
+  const findG = (id) => (payload.gadgets || []).find((g) => g.id === id);
+
+  const canSave = name.trim().length > 0 && primaryId;
+
+  const handleSave = () => {
+    onSave({
+      ...(existing || {}),
+      name: name.trim(),
+      primaryId, secondaryId,
+      gadget1Id: g1Id, gadget2Id: g2Id,
+    });
+  };
+
+  const Slot = ({ label, value, sub, tier, onClick }) => (
+    <button onClick={onClick} className="lo-slot">
+      <div className="lo-slot-label">{label}</div>
+      <div className={`lo-slot-value ${value ? '' : 'empty'}`}>{value || 'Tap to pick'}</div>
+      {sub && <div className="lo-slot-sub">{sub.toUpperCase()}</div>}
+      {tier && <TierBadge tier={tier} size={22} />}
+      <span className="chevron">›</span>
+    </button>
+  );
+
+  const primary = findW(primaryId);
+  const secondary = findW(secondaryId);
+  const g1 = findG(g1Id);
+  const g2 = findG(g2Id);
+
+  return (
+    <div className="modal-fullscreen">
+      <TopBar title={existing ? 'Edit Loadout' : 'New Loadout'}
+        right={<button onClick={onClose} className="btn-link">Cancel</button>} />
+      <div className="flex-1 overflow-y-auto px-4 pt-3 pb-10">
+        <SectionHeader>Name</SectionHeader>
+        <input type="text" placeholder="e.g. Conquest Anchor"
+               value={name} onChange={(e) => setName(e.target.value)} />
+
+        <SectionHeader>Primary Weapon</SectionHeader>
+        <Slot label="PRIMARY" value={primary?.name}
+              sub={primary && wcls(primary)} tier={primary?.tier}
+              onClick={() => setPicker('primary')} />
+
+        <SectionHeader>Secondary</SectionHeader>
+        <Slot label="SECONDARY" value={secondary?.name}
+              sub={secondary && wcls(secondary)} tier={secondary?.tier}
+              onClick={() => setPicker('secondary')} />
+
+        <SectionHeader>Gadgets</SectionHeader>
+        <div className="col gap-2">
+          <Slot label="GADGET 1" value={g1?.name} sub={g1?.role} tier={g1?.tier} onClick={() => setPicker('g1')} />
+          <Slot label="GADGET 2" value={g2?.name} sub={g2?.role} tier={g2?.tier} onClick={() => setPicker('g2')} />
+        </div>
+
+        <button onClick={handleSave} disabled={!canSave} className="btn-primary" style={{ marginTop: 24 }}>
+          {existing ? 'Update Loadout' : 'Save Loadout'}
+        </button>
+
+        {existing && (
+          <button onClick={() => onDelete(existing.id)} className="btn-danger" style={{ marginTop: 8 }}>
+            Delete Loadout
+          </button>
+        )}
+      </div>
+
+      {picker === 'primary' && (
+        <WeaponPicker payload={payload} excludeClasses={['Handgun']}
+          onPick={(w) => { setPrimaryId(w.id); setPicker(null); }}
+          onClose={() => setPicker(null)} />
+      )}
+      {picker === 'secondary' && (
+        <WeaponPicker payload={payload} restrictToClasses={['Handgun']}
+          onPick={(w) => { setSecondaryId(w.id); setPicker(null); }}
+          onClose={() => setPicker(null)} />
+      )}
+      {picker === 'g1' && (
+        <GadgetPicker payload={payload}
+          onPick={(g) => { setG1Id(g.id); setPicker(null); }}
+          onClose={() => setPicker(null)} />
+      )}
+      {picker === 'g2' && (
+        <GadgetPicker payload={payload}
+          onPick={(g) => { setG2Id(g.id); setPicker(null); }}
+          onClose={() => setPicker(null)} />
+      )}
+    </div>
+  );
+}
+
+function GadgetPicker({ payload, onPick, onClose }) {
+  const [search, setSearch] = useState('');
+  const list = useMemo(() => {
+    let base = payload.gadgets || [];
+    if (search) {
+      const q = search.toLowerCase();
+      base = base.filter((g) =>
+        g.name.toLowerCase().includes(q) ||
+        g.role.toLowerCase().includes(q));
+    }
+    return [...base].sort((a, b) => {
+      const t = tierOrder(a.tier) - tierOrder(b.tier);
+      return t !== 0 ? t : a.name.localeCompare(b.name);
+    });
+  }, [payload, search]);
+
+  return (
+    <div className="modal-fullscreen">
+      <TopBar title="Pick a gadget"
+        right={<button onClick={onClose} className="btn-link">Cancel</button>} />
+      <div className="px-4 pt-3 pb-2">
+        <input type="search" placeholder="Search gadgets"
+               value={search} onChange={(e) => setSearch(e.target.value)} />
+      </div>
+      <div className="flex-1 overflow-y-auto px-4 pb-6">
+        <div className="col gap-2">
+          {list.map((g) => (
+            <button key={g.id} onClick={() => onPick(g)}
+                    className="weapon-row" style={{ borderRadius: 8 }}>
+              <TierBadge tier={g.tier} size={28} />
+              <div className="weapon-row-content">
+                <div className="weapon-name">{g.name}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
+                  <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1, color: '#FF6B35' }}>{g.role.toUpperCase()}</span>
+                  <span style={{ color: 'rgba(255,255,255,0.3)' }}>•</span>
+                  <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1, color: 'rgba(255,255,255,0.45)' }}>{g.classRestriction.toUpperCase()}</span>
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// FAVORITES
+// ─────────────────────────────────────────────────────────────────────────
+function FavoritesScreen({ payload, favs, onOpenWeapon }) {
+  const list = useMemo(
+    () => sortByTier(payload.weapons.filter((w) => favs.has(w.id))),
+    [payload, favs]
+  );
+  return (
+    <div className="col h-full">
+      <TopBar title="FAVORITES" />
+      <div className="flex-1 overflow-y-auto px-4 pt-3 pb-28">
+        {list.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-icon">☆</div>
+            <div className="empty-title">No favorites yet</div>
+            <div className="empty-text">Tap the star on any weapon to save it here.</div>
+          </div>
+        ) : (
+          <div className="col gap-2-5">
+            {list.map((w) => (
+              <WeaponRow key={w.id} weapon={w} onTap={() => onOpenWeapon(w)} isFav showClass />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// ABOUT
+// ─────────────────────────────────────────────────────────────────────────
+function AboutScreen({ payload, source, onRefresh, refreshing }) {
+  return (
+    <div className="col h-full">
+      <TopBar title="ABOUT" />
+      <div className="flex-1 overflow-y-auto px-4 pt-3 pb-28">
+        <div className="card p-4">
+          <div style={{ fontSize: 26, fontWeight: 900 }}>BF6 META</div>
+          <div style={{ fontSize: 14, fontWeight: 600, color: '#FF6B35', marginTop: 4 }}>
+            Weapon Mod Explorer (PWA)
+          </div>
+        </div>
+
+        <div className="card mt-3 p-4 col">
+          <InfoRow label="App Version"   value={VERSION} />
+          <InfoRow label="Data Version"  value={payload.version} />
+          <InfoRow label="Last Updated"  value={payload.lastUpdated} />
+          <InfoRow label="Source Game"   value={payload.sourceGame} />
+          <InfoRow label="Season"        value={payload.sourceSeason} />
+          <InfoRow label="Platform"      value={payload.platform} />
+          <InfoRow label="Total Weapons" value={payload.weapons.length} />
+          <InfoRow label="Total Gadgets" value={(payload.gadgets || []).length} />
+          <InfoRow label="Loaded From"   value={source} last />
+        </div>
+
+        <button onClick={onRefresh} disabled={refreshing} className="btn-primary" style={{ marginTop: 12 }}>
+          {refreshing ? '↻ Refreshing…' : '↻ Refresh from server'}
+        </button>
+
+        <SectionHeader>Weapons per Class</SectionHeader>
+        <div className="card p-4 col">
+          {payload.classes.map((c, i) => {
+            const count = payload.weapons.filter((w) => wcls(w) === c).length;
+            const isLast = i === payload.classes.length - 1;
+            return (
+              <div key={c} className={`pct-row ${isLast ? 'last' : ''}`}>
+                <div className="pct-row-label">{c.toUpperCase()}</div>
+                <div className="pct-row-count">{count}</div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="footer-text">
+          Data sourced from community tier lists and official BF6 weapon roster.
+          Meta shifts with patches — use as a reliable baseline.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function InfoRow({ label, value, last }) {
+  return (
+    <div className={`info-row ${last ? 'last' : ''}`}>
+      <div className="info-row-label">{label}</div>
+      <div className="info-row-value">{value}</div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// TAB BAR
+// ─────────────────────────────────────────────────────────────────────────
+function TabBar({ tab, setTab }) {
+  const tabs = [
+    { id: 'browse',    label: 'Browse',    icon: '◎' },
+    { id: 'compare',   label: 'Compare',   icon: '↔' },
+    { id: 'loadouts',  label: 'Loadouts',  icon: '▤' },
+    { id: 'favorites', label: 'Favorites', icon: '★' },
+    { id: 'about',     label: 'About',     icon: 'ⓘ' },
+  ];
+  return (
+    <div className="tabbar safe-bottom nosel">
+      <div className="tabbar-row">
+        {tabs.map((t) => (
+          <button key={t.id} onClick={() => setTab(t.id)}
+                  className={`tab-btn ${tab === t.id ? 'active' : ''}`}>
+            <div className="tab-icon">{t.icon}</div>
+            <div className="tab-label">{t.label}</div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// APP ROOT
+// ─────────────────────────────────────────────────────────────────────────
+function App() {
+  const [payload, setPayload] = useState(null);
+  const [loadError, setLoadError] = useState(null);
+  const [source, setSource] = useState('Loading…');
+  const [refreshing, setRefreshing] = useState(false);
+
+  const [tab, setTab] = useState('browse');
+  const [openWeapon, setOpenWeapon] = useState(null);
+
+  const [favs, setFavs] = useState(() => storage.getFavs());
+  const [loadouts, setLoadoutsState] = useState(() => storage.getLoadouts());
+
+  const setLoadouts = useCallback((arr) => {
+    setLoadoutsState(arr);
+    storage.setLoadouts(arr);
+  }, []);
+
+  const toggleFav = useCallback((id) => {
+    setFavs((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      storage.setFavs(next);
+      return next;
+    });
+  }, []);
+
+  const fetchData = useCallback(async (force = false) => {
+    setRefreshing(true);
+    try {
+      const url = DATA_URL + (force ? `?t=${Date.now()}` : '');
+      const res = await fetch(url, { cache: force ? 'no-cache' : 'default' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      json.weapons = json.weapons.map((w) => ({ ...w, weaponClass: w.weaponClass || w.class }));
+      setPayload(json);
+      setSource(navigator.onLine ? 'Network' : 'Cache');
+      setLoadError(null);
+    } catch (e) {
+      setLoadError(e.message);
+      setSource('Offline / cache only');
+    } finally {
+      setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchData(false); }, [fetchData]);
+
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch((err) => {
+        console.warn('SW registration failed:', err);
+      });
+    }
+  }, []);
+
+  if (loadError && !payload) {
+    return (
+      <div className="col h-full items-center justify-center px-4 text-center">
+        <div style={{ fontSize: 40, color: '#FF6B35', marginBottom: 8 }}>⚠</div>
+        <div style={{ fontSize: 18, fontWeight: 700 }}>Couldn't load weapons</div>
+        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>{loadError}</div>
+        <button onClick={() => fetchData(true)} className="btn-pill" style={{ marginTop: 16 }}>Retry</button>
+      </div>
+    );
+  }
+
+  if (!payload) {
+    return (
+      <div className="col h-full items-center justify-center">
+        <div style={{ fontSize: 28, fontWeight: 900 }}>BF6 META</div>
+        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>Loading weapon data…</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="col h-full">
+      <div className="flex-1 min-h-0">
+        {tab === 'browse'    && <BrowseScreen    payload={payload} favs={favs} onOpenWeapon={setOpenWeapon} />}
+        {tab === 'compare'   && <CompareScreen   payload={payload} />}
+        {tab === 'loadouts'  && <LoadoutsScreen  payload={payload} loadouts={loadouts} setLoadouts={setLoadouts} />}
+        {tab === 'favorites' && <FavoritesScreen payload={payload} favs={favs} onOpenWeapon={setOpenWeapon} />}
+        {tab === 'about'     && <AboutScreen     payload={payload} source={source} onRefresh={() => fetchData(true)} refreshing={refreshing} />}
+      </div>
+      <TabBar tab={tab} setTab={setTab} />
+      {openWeapon && (
+        <WeaponDetail weapon={openWeapon} isFav={favs.has(openWeapon.id)}
+          onToggleFav={() => toggleFav(openWeapon.id)}
+          onClose={() => setOpenWeapon(null)} />
+      )}
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+</script>
+</body>
+</html>
